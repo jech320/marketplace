@@ -5,13 +5,13 @@ import { SafeMathLib } from "./SafeMathLib.sol";
 
 contract Marketplace is Ownable {
     enum Role { Buyer, Seller }
-    mapping (uint => string) public roles;
-    mapping (address => User) private users;
+    string[] public roles;
+    mapping (address => User) public users;
     address[] public userAddressIndices;
     
     constructor() public {
-        roles[uint(Role.Buyer)] = "Buyer";
-        roles[uint(Role.Seller)] = "Seller";
+        roles.push("Buyer");
+        roles.push("Seller");
     }
     
     struct User {
@@ -47,7 +47,7 @@ contract Marketplace is Ownable {
     
     modifier onlyRegistered() {
         require(users[msg.sender].role == Role.Buyer
-            && users[msg.sender].role == Role.Seller,
+            || users[msg.sender].role == Role.Seller,
             "Registered users only");
         _;
     }
