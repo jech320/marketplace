@@ -154,10 +154,7 @@ contract Marketplace is Ownable {
         private
     {
         uint  arrLength = users[sellerAddress].itemsForSale.length;
-        while (index < arrLength - 1) {
-            users[sellerAddress].itemsForSale[index] = users[sellerAddress].itemsForSale[index + 1];
-            index++;
-        }
+        users[sellerAddress].itemsForSale[index] = users[sellerAddress].itemsForSale[arrLength - 1];
         users[sellerAddress].itemsForSale.length--;
     }
     
