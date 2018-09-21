@@ -29,7 +29,7 @@ contract Marketplace is Ownable {
     struct Item {
         string name;
         string description;
-        string[] ipfsHash;
+        string[] imageIpfsHashes;
         uint price;
     }
     
@@ -63,22 +63,22 @@ contract Marketplace is Ownable {
         public
         onlySeller
     {
-        string[] memory ipfsHash;
+        string[] memory imageIpfsHashes;
         Item memory item = Item({
             name: name,
             description: description,
-            ipfsHash: ipfsHash,
+            imageIpfsHashes: imageIpfsHashes,
             price: price
         });
 
         users[msg.sender].itemsForSale.push(item);
     }
     
-    function addImageForItemForSale(uint index, string ipfsHash)
+    function addImageForItemForSale(uint index, string imageIpfsHash)
         public
         onlySeller
     {
-        users[msg.sender].itemsForSale[index].ipfsHash.push(ipfsHash);
+        users[msg.sender].itemsForSale[index].imageIpfsHashes.push(imageIpfsHash);
     }
     
     function itemForSaleCount(address sellerAddress)
@@ -112,7 +112,7 @@ contract Marketplace is Ownable {
         onlyRegistered
         returns (uint)
     {
-        return (users[sellerAddress].itemsForSale[itemIndex].ipfsHash.length);
+        return (users[sellerAddress].itemsForSale[itemIndex].imageIpfsHashes.length);
     }
     
     function getItemForSaleImage(
@@ -125,7 +125,7 @@ contract Marketplace is Ownable {
         onlyRegistered
         returns (string)
     {
-        return (users[sellerAddress].itemsForSale[itemIndex].ipfsHash[imageIndex]);
+        return (users[sellerAddress].itemsForSale[itemIndex].imageIpfsHashes[imageIndex]);
     }
 
     function purchaseItem(
@@ -173,10 +173,10 @@ contract Marketplace is Ownable {
         public
         onlySeller
     {
-        uint arrLength = users[msg.sender].itemsForSale[itemIndex].ipfsHash.length;
-        string memory lastImageHash = users[msg.sender].itemsForSale[itemIndex].ipfsHash[arrLength - 1];
-        users[msg.sender].itemsForSale[itemIndex].ipfsHash[imageIndex] = lastImageHash;
-        users[msg.sender].itemsForSale[itemIndex].ipfsHash.length--;
+        uint arrLength = users[msg.sender].itemsForSale[itemIndex].imageIpfsHashes.length;
+        string memory lastImageHash = users[msg.sender].itemsForSale[itemIndex].imageIpfsHashes[arrLength - 1];
+        users[msg.sender].itemsForSale[itemIndex].imageIpfsHashes[imageIndex] = lastImageHash;
+        users[msg.sender].itemsForSale[itemIndex].imageIpfsHashes.length--;
     }
     
     function getSellerContact(address sellerAddress)
