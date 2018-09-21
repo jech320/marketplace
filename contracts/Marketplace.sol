@@ -138,8 +138,8 @@ contract Marketplace is Ownable {
     {
         Item memory item = users[sellerAddress].itemsForSale[itemIndex];
 
-        require(msg.value >= item.price,
-            "Insufficient amount to purchase item");
+        require(msg.value == item.price,
+            "Input exact amount of item price to purchase");
         
         sellerAddress.transfer(item.price);
         removeItemForSale(sellerAddress, itemIndex);
