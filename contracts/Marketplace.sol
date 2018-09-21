@@ -158,6 +158,27 @@ contract Marketplace is Ownable {
         users[sellerAddress].itemsForSale.length--;
     }
     
+    function updateItemForSale(
+        uint index,
+        string name,
+        string description,
+        uint price
+    ) public onlySeller {
+        users[msg.sender].itemsForSale[index].name = name;
+        users[msg.sender].itemsForSale[index].description = description;
+        users[msg.sender].itemsForSale[index].price = price;
+    }
+    
+    function removeItemForSaleImage(uint itemIndex, uint imageIndex)
+        public
+        onlySeller
+    {
+        uint arrLength = users[msg.sender].itemsForSale[itemIndex].ipfsHash.length;
+        string memory lastImageHash = users[msg.sender].itemsForSale[itemIndex].ipfsHash[arrLength - 1];
+        users[msg.sender].itemsForSale[itemIndex].ipfsHash[imageIndex] = lastImageHash;
+        users[msg.sender].itemsForSale[itemIndex].ipfsHash.length--;
+    }
+    
     function getSellerContact(address sellerAddress)
         public
         view
