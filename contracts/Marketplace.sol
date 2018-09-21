@@ -128,21 +128,38 @@ contract Marketplace is Ownable {
         return (users[sellerAddress].itemsForSale[itemIndex].ipfsHash[imageIndex]);
     }
 
-    // TODO
-    // function purchaseItem(
-    //     address sellerAddress,
-    //     uint itemIndex
-    // )
-    //     public
-    //     onlyBuyer
-    // {
-    //     Item memory itemBought = users[sellerAddress].itemsForSale[itemIndex];
-    // }
-    
-    // TODO
-    // function removeItemForSale(uint index) public {
+    function purchaseItem(
+        address sellerAddress,
+        uint itemIndex
+    )
+        public
+        payable
+        onlyBuyer
+    {
+        Item memory item = users[sellerAddress].itemsForSale[itemIndex];
+
+        require(msg.value >= item.price,
+            "Insufficient amount to purchase item");
         
-    // }
+        sellerAddress.transfer(item.price);
+        removeItemForSale(sellerAddress, itemIndex);
+        users[msg.sender].itemsBought.push(item);
+    }
+    
+    function removeItemForSaleBySeller(uint index) public onlySeller {
+        removeItemForSale(msg.sender, index);
+    }
+    
+    function removeItemForSale(address sellerAddress, uint index)
+        private
+    {
+        uint  arrLength = users[sellerAddress].itemsForSale.length;
+        while (index < arrLength - 1) {
+            users[sellerAddress].itemsForSale[index] = users[sellerAddress].itemsForSale[index + 1];
+            index++;
+        }
+        users[sellerAddress].itemsForSale.length--;
+    }
     
     function getSellerContact(address sellerAddress)
         public
