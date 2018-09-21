@@ -6,7 +6,7 @@ import { SafeMathLib } from "./SafeMathLib.sol";
 contract Marketplace is Ownable {
     enum Role { Buyer, Seller }
     string[] public roles;
-    mapping (address => User) public users;
+    mapping (address => User) private users;
     address[] public userAddressIndices;
     
     constructor() public {
@@ -35,20 +35,26 @@ contract Marketplace is Ownable {
     
     modifier onlySeller() {
         require(users[msg.sender].role == Role.Seller,
-            "Seller only");
+            "Error: Seller only");
         _;
     }
     
     modifier onlyBuyer() {
         require(users[msg.sender].role == Role.Buyer,
-            "Buyer only");
+            "Error: Buyer only");
         _;
     }
     
     modifier onlyRegistered() {
         require(users[msg.sender].role == Role.Buyer
             || users[msg.sender].role == Role.Seller,
-            "Registered users only");
+            "Error: Registered users only");
+        _;
+    }
+    
+    modifier verifyItemsBoughtViewer(address buyerAddress) {
+        require((isBuyer(buyerAddress) && isMatch(buyerAddress, msg.sender))
+            || isSeller(msg.sender), "Error: Not allowed to view");
         _;
     }
     
@@ -81,7 +87,7 @@ contract Marketplace is Ownable {
         users[msg.sender].itemsForSale[index].imageIpfsHashes.push(imageIpfsHash);
     }
     
-    function itemForSaleCount(address sellerAddress)
+    function getItemForSaleCount(address sellerAddress)
         public
         view
         onlyRegistered
@@ -187,5 +193,55 @@ contract Marketplace is Ownable {
     {
         Contact memory sellerContact = users[sellerAddress].contact;
         return (sellerContact.email, sellerContact.number);
+    }
+    
+    function isSeller(address addr) public view returns (bool) {
+        return users[addr].role == Role.Seller;
+    }
+    
+    function isBuyer(address addr) public view returns (bool) {
+        return users[addr].role == Role.Buyer;
+    }
+    
+    function isMatch(address addr1, address addr2) public pure returns (bool) {
+        return addr1 == addr2;
+    }
+    
+    function getItemBought(address buyerAddress, uint index)
+        public
+        view
+        verifyItemsBoughtViewer(buyerAddress)
+        returns (string, string, uint)
+    {
+        return (
+            users[buyerAddress].itemsBought[index].name,    
+            users[buyerAddress].itemsBought[index].description,
+            users[buyerAddress].itemsBought[index].price
+        );
+    }
+    
+    function getItemBoughtImageCount(
+        address buyerAddress,
+        uint itemIndex
+    )
+        public
+        view
+        verifyItemsBoughtViewer(buyerAddress)
+        returns (uint)
+    {
+        return (users[buyerAddress].itemsForSale[itemIndex].imageIpfsHashes.length);
+    }
+    
+    function getItemBoughtImage(
+        address buyerAddress,
+        uint itemIndex,
+        uint imageIndex
+    )
+        public
+        view
+        verifyItemsBoughtViewer(buyerAddress)
+        returns (string)
+    {
+        return (users[buyerAddress].itemsForSale[itemIndex].imageIpfsHashes[imageIndex]);
     }
 }
