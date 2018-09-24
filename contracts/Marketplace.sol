@@ -43,20 +43,23 @@ contract Marketplace is Ownable {
       address sellerAddress,
       string name,
       string description,
-      uint price
+      uint cutPrice,
+      uint commission
     );
 
     enum Role { Buyer, Seller }
+    uint private commission;
     string[] public roles;
     address[] public userAddressIndices;
     mapping (address => User) private users;
     
-    constructor() public {
+    constructor() public payable {
         roles.push("Buyer");
         roles.push("Seller");
     }
     
     struct User {
+        bool isExist;
         Role role;
         Contact contact;
         Item[] itemsBought;
@@ -82,14 +85,14 @@ contract Marketplace is Ownable {
     }
     
     modifier onlyBuyer() {
-        require(users[msg.sender].role == Role.Buyer,
+        require(users[msg.sender].isExist
+          && users[msg.sender].role == Role.Buyer,
             "Error: Buyer only");
         _;
     }
     
     modifier onlyRegistered() {
-        require(users[msg.sender].role == Role.Buyer
-            || users[msg.sender].role == Role.Seller,
+        require(users[msg.sender].isExist,
             "Error: Registered users only");
         _;
     }
@@ -114,11 +117,20 @@ contract Marketplace is Ownable {
     
     function registerUser(Role role, string email, string number) public {
         users[msg.sender].role = role;
+        users[msg.sender].isExist = true;
         users[msg.sender].contact.email = email;
         users[msg.sender].contact.number = number;
         userAddressIndices.push(msg.sender);
         
         emit LogUserRegistration(msg.sender, uint(role), email, number);
+    }
+
+    function getUserAddress(uint index) public view returns (address) {
+      return userAddressIndices[index];
+    }
+
+    function getUserAddressIndicesCount() public view returns (uint) {
+      return userAddressIndices.length;
     }
     
     function addItemForSale(string name, string description, uint price)
@@ -159,7 +171,6 @@ contract Marketplace is Ownable {
     function getItemForSaleCount(address sellerAddress)
         public
         view
-        onlyRegistered
         returns (uint)
     {
         return users[sellerAddress].itemsForSale.length;
@@ -168,7 +179,6 @@ contract Marketplace is Ownable {
     function getItemForSale(address sellerAddress, uint index)
         public
         view
-        onlyRegistered
         returns (string, string, uint)
     {
         return (
@@ -184,7 +194,6 @@ contract Marketplace is Ownable {
     )
         public
         view
-        onlyRegistered
         returns (uint)
     {
         return (users[sellerAddress].itemsForSale[itemIndex].imageIpfsHashes.length);
@@ -197,7 +206,6 @@ contract Marketplace is Ownable {
     )
         public
         view
-        onlyRegistered
         returns (string)
     {
         return (users[sellerAddress].itemsForSale[itemIndex].imageIpfsHashes[imageIndex]);
@@ -216,7 +224,10 @@ contract Marketplace is Ownable {
         require(msg.value == item.price,
             "Input exact amount of item price to purchase");
         
-        sellerAddress.transfer(item.price);
+        uint cutPrice = SafeMathLib.divide(SafeMathLib.multiply(item.price, 95), 100);
+        uint itemCommission = SafeMathLib.subtract(item.price, cutPrice);
+        commission = SafeMathLib.add(commission, itemCommission);
+        sellerAddress.transfer(cutPrice);
         removeItemForSale(sellerAddress, itemIndex);
         users[msg.sender].itemsBought.push(item);
 
@@ -225,8 +236,18 @@ contract Marketplace is Ownable {
           sellerAddress,
           item.name,
           item.description,
-          item.price
+          cutPrice,
+          commission
         );
+    }
+    
+    function cashoutCommission() public payable onlyOwner {
+        owner.transfer(commission);
+        commission = 0;
+    }
+    
+    function viewCommission() public view onlyOwner returns (uint) {
+        return commission;
     }
     
     function removeItemForSaleBySeller(uint index) public onlySeller {
