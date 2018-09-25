@@ -97,12 +97,6 @@ contract Marketplace is Ownable {
         _;
     }
     
-    modifier verifyItemsBoughtViewer(address buyerAddress) {
-        require((isBuyer(buyerAddress) && isMatch(buyerAddress, msg.sender))
-            || isSeller(msg.sender), "Error: Not allowed to view");
-        _;
-    }
-
     function isSeller(address addr) public view returns (bool) {
         return users[addr].role == Role.Seller;
     }
@@ -314,41 +308,44 @@ contract Marketplace is Ownable {
         return (sellerContact.email, sellerContact.number);
     }
     
-    function getItemBought(address buyerAddress, uint index)
+    function getItemBought(uint index)
         public
         view
-        verifyItemsBoughtViewer(buyerAddress)
         returns (string, string, uint)
     {
         return (
-            users[buyerAddress].itemsBought[index].name,    
-            users[buyerAddress].itemsBought[index].description,
-            users[buyerAddress].itemsBought[index].price
+            users[msg.sender].itemsBought[index].name,    
+            users[msg.sender].itemsBought[index].description,
+            users[msg.sender].itemsBought[index].price
         );
+    }
+
+    function itemsBoughtCount()
+      public
+      view
+      returns (uint)
+    {
+      return users[msg.sender].itemsBought.length;
     }
     
     function getItemBoughtImageCount(
-        address buyerAddress,
         uint itemIndex
     )
         public
         view
-        verifyItemsBoughtViewer(buyerAddress)
         returns (uint)
     {
-        return (users[buyerAddress].itemsForSale[itemIndex].imageIpfsHashes.length);
+        return (users[msg.sender].itemsBought[itemIndex].imageIpfsHashes.length);
     }
     
     function getItemBoughtImage(
-        address buyerAddress,
         uint itemIndex,
         uint imageIndex
     )
         public
         view
-        verifyItemsBoughtViewer(buyerAddress)
         returns (string)
     {
-        return (users[buyerAddress].itemsForSale[itemIndex].imageIpfsHashes[imageIndex]);
+        return (users[msg.sender].itemsBought[itemIndex].imageIpfsHashes[imageIndex]);
     }
 }
