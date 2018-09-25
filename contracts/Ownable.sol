@@ -1,6 +1,11 @@
 pragma solidity ^0.4.24;
 
 contract Ownable {
+    event LogChangeOfOwnership(
+      address indexed owner,
+      address newOwner
+    );
+
     address public owner;
     
     constructor() public {
@@ -13,8 +18,9 @@ contract Ownable {
     }
     
     function changeOwner(address newOwner) public onlyOwner {
-        if (newOwner != address(0)) {
-            owner = newOwner;
-        }
+        require(newOwner != address(0));
+        owner = newOwner;
+
+        emit LogChangeOfOwnership(owner, newOwner);
     }
 }

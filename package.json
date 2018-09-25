@@ -1,0 +1,28 @@
+{
+  "name": "marketplace_dapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": ".solcover.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "truffle test",
+    "test:run:server": "testrpc-sc --port 8555 -l 0xfffffffffff -g 0x01",
+    "test:coverage": "solidity-coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jech320/marketplace.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jech320/marketplace/issues"
+  },
+  "homepage": "https://github.com/jech320/marketplace#readme",
+  "devDependencies": {
+    "solidity-coverage": "^0.5.11"
+  }
+}
