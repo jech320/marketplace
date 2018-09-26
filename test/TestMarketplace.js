@@ -20,6 +20,16 @@ contract("Marketplace", accounts => {
       "QmUYnp7zaCwCj4Y5QBwKwRUNTsoY9GHCbrTTvqjaohTre7"
     ]
   };
+  const buyerData = {
+    role: 0,
+    email: "buyer@kingsland.ph",
+    number: "639xxx"
+  };
+  const sellerData = {
+    role: 1,
+    email: "seller@kingsland.ph",
+    number: "639xxx"
+  };
   const postItemForSale = async () => {
     await marketplace.addItemForSale(item.name, item.description, item.price, {
       from: seller
@@ -42,10 +52,10 @@ contract("Marketplace", accounts => {
 
   beforeEach(async () => {
     marketplace = await Marketplace.new();
-    await marketplace.registerUser(0, "buyer@kingsland.com", "639xxxxxxxxx", {
+    await marketplace.registerUser(buyerData.role, buyerData.email, buyerData.number, {
         from: buyer
       });
-    await marketplace.registerUser(1, "seller@kingsland.com", "639xxxxxxxxx", {
+    await marketplace.registerUser(sellerData.role, sellerData.email, sellerData.number, {
         from: seller
       });
   });
@@ -55,7 +65,7 @@ contract("Marketplace", accounts => {
       await marketplace.getSellerContact(seller, { from: visitor });
       assert.fail();
     } catch (err) {
-      assert.isOk(true);
+      assert.isOk(/revert/.test(err.message));
     }
   });
 
@@ -74,7 +84,7 @@ contract("Marketplace", accounts => {
       });
       assert.fail();
     } catch (err) {
-      assert.isOk(true);
+      assert.isOk(/revert/.test(err.message));
     }
   });
 
@@ -85,7 +95,7 @@ contract("Marketplace", accounts => {
       });
       assert.fail();
     } catch (err) {
-      assert.isOk(true);
+      assert.isOk(/revert/.test(err.message));
     }
   });
 
@@ -145,14 +155,14 @@ contract("Marketplace", accounts => {
       value: 10 * FINNEY
     });
 
-    const ownerBalance = await getBalance(owner);
-
     await marketplace.cashoutCommission();
     
-    const ownerBalanceActual = await getBalance(owner);
-    const ownerBalanceExpected = ownerBalance + item.price * 5 / 100;
+    const marketplaceCommissionBigNum = await marketplace.viewCommission({
+      from: owner
+    });
+    const marketplaceCommission = marketplaceCommissionBigNum.toNumber();
     
-    assert.ok(ownerBalanceActual, ownerBalanceExpected);
+    assert.equal(marketplaceCommission, 0);
   });
 
   it("allows visitors to view items for sale", async () => {
@@ -323,4 +333,110 @@ contract("Marketplace", accounts => {
 
     assert.deepEqual(itemsBought, itemsBoughtExpected);
   });
-});
+
+  it("allows the owner to transfer ownership", async () => {
+    const prevOwner = marketplace.owner;
+    await marketplace.transferOwnership(visitor, {
+      from: owner
+    });
+
+    assert.equal(marketplace.owner, prevOwner);
+  });
+
+  it("only allows owner to transfer ownership", async () => {
+    try {
+      await marketplace.transferOwnership(visitor, {
+        from: visitor
+      });
+      assert.fail();
+    } catch (err) {
+      assert.isOk(/revert/.test(err.message));
+    }
+  });
+
+  it("does not allow owner to transfer ownership to zero address", async () => {
+    try {
+      await marketplace.transferOwnership(0, {
+        from: owner
+      });
+      assert.fail();
+    } catch (err) {
+      assert.isOk(/revert/.test(err.message));
+    }
+  });
+
+  it("allows anyone to view sellers address", async () => {
+    const userAddressIndicesCountBigNum = await marketplace.getUserAddressIndicesCount({
+      from: visitor
+    });
+    const userAddressIndicesCount = userAddressIndicesCountBigNum.toNumber();
+
+    const registeredUsers = [];
+    for (let index = 0; index < userAddressIndicesCount; index++) {
+      const userAddress = await marketplace.getUserAddress(index, {
+        from: visitor
+      });
+
+      registeredUsers.push(userAddress)
+    }
+
+    const registeredUsersExpected = [buyer, seller];
+
+    assert.deepEqual(registeredUsers, registeredUsersExpected);
+  });
+
+  it("does not allow buyer to pay inexact amount for the item", async () => {
+    await postItemForSale();
+
+    try {
+      await marketplace.purchaseItem(seller, 0, {
+        from: buyer,
+        value: 11 * FINNEY
+      });
+      assert.fail();
+    } catch (err) {
+      assert.isOk(/revert/.test(err.message));
+    }
+  });
+
+  it("allows registered users, either buyer or seller to view seller contact address", async () => {
+    const sellerContactArr = await marketplace.getSellerContact(seller, {
+      from: buyer
+    });
+    const sellerContactActual = {
+      email: sellerContactArr[0],
+      number: sellerContactArr[1]
+    };
+    const sellerContactExpected = {
+      email: sellerData.email,
+      number: sellerData.number
+    };
+
+    assert.deepEqual(sellerContactActual, sellerContactExpected);
+  });
+
+  it("does not allow non-buyer to purchase item", async () => {
+    await postItemForSale();
+
+    try {
+      await marketplace.purchaseItem(seller, 0, {
+        from: visitor,
+        value: 10 * FINNEY
+      });
+      assert.fail();
+    } catch (err) {
+      assert.isOk(/revert/.test(err.message));
+    }
+  });
+
+  it("does not allow adding item for sale with price 0 or less", async () => {
+    try {
+      await marketplace.addItemForSale(item.name, item.description, 0, {
+        from: seller
+      });
+      assert.fail();
+    } catch (err) {
+      assert.isOk(/revert/.test(err.message));
+    }
+  });
+})

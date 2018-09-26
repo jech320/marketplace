@@ -1,1 +1,7 @@
-module.exports = { norpc: true };
+module.exports = {
+  norpc: true,
+  skipFiles: [
+    'lifecycle/Migrations.sol',
+    'mocks'
+] 
+};

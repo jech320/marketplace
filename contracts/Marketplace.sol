@@ -97,18 +97,6 @@ contract Marketplace is Ownable {
         _;
     }
     
-    function isSeller(address addr) public view returns (bool) {
-        return users[addr].role == Role.Seller;
-    }
-    
-    function isBuyer(address addr) public view returns (bool) {
-        return users[addr].role == Role.Buyer;
-    }
-    
-    function isMatch(address addr1, address addr2) public pure returns (bool) {
-        return addr1 == addr2;
-    }
-    
     function registerUser(Role role, string email, string number) public {
         users[msg.sender].role = role;
         users[msg.sender].isExist = true;
@@ -132,6 +120,10 @@ contract Marketplace is Ownable {
         onlySeller
     {
         string[] memory imageIpfsHashes;
+
+        require(price > 0,
+          "Item price should be at least 1");
+
         Item memory item = Item({
             name: name,
             description: description,
