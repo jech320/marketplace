@@ -228,8 +228,8 @@ contract Marketplace is Ownable {
     }
     
     function cashoutCommission() public payable onlyOwner {
-        owner.transfer(commission);
         commission = 0;
+        owner.transfer(commission);
     }
     
     function viewCommission() public view onlyOwner returns (uint) {
@@ -241,7 +241,7 @@ contract Marketplace is Ownable {
     }
     
     function removeItemForSale(address sellerAddress, uint index)
-        private
+        internal
     {
         Item memory item = users[sellerAddress].itemsForSale[index];
 
