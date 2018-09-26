@@ -9,17 +9,6 @@ contract("SafeMathLib", accounts => {
   });
 
   describe("multiply", () => {
-    it("computes product correctly", async () => {
-      const a = 10;
-      const b = 10;
-
-      const productBigNum = await safeMathLib.multiply(a, b);
-      const product = productBigNum.toNumber();
-      const expected = a * b;
-
-      assert.equal(product, expected);
-    });
-
     it("does not allow overflow", async () => {
       const a = MAX_UINT;
       const b = 10;
