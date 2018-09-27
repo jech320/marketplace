@@ -15,16 +15,12 @@ class Wallet {
     this.setCredentials(wallet);
   }
   
-  recoverFromPrivateKey(privateKey) {
-    const wallet = ethers.Wallet(privateKey);
-
-    this.setCredentials(wallet);
+  static recoverFromPrivateKey(privateKey) {
+    return new ethers.Wallet(privateKey);
   }
 
-  recoverFromMnemonic(mnemonic) {
-    const wallet = ethers.Wallet.fromMnemonic(mnemonic);
-
-    this.setCredentials(wallet);
+  static recoverFromMnemonic(mnemonic) {
+    return ethers.Wallet.fromMnemonic(mnemonic);
   }
 
   setCredentials({ address, mnemonic, derivationPath, privateKey }) {
