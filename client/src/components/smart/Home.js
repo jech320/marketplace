@@ -7,7 +7,8 @@ import {
   Panel,
   Button,
   Form,
-  FormGroup
+  FormGroup,
+  Modal
 } from "react-bootstrap";
 import {
   getContract,
@@ -15,12 +16,17 @@ import {
   getWallet,
   ropstenProvider
 } from "./../../utils/main";
-import Wallet from './../../models/Wallet';
+import Loading from "./../Loading";
+import Wallet from "./../../models/Wallet";
 import ItemForSaleView from "./../dumb/ItemForSaleView";
 
 const styles = {
   item: {
     display: "inline"
+  },
+  formGroup: {
+    maxWidth: "30%",
+    display: "inline-block"
   }
 };
 
@@ -28,7 +34,7 @@ class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      items: []
+      items: undefined
     };
     this.loadItemsForSale = this.loadItemsForSale.bind(this);
     this.handlePurchase = this.handlePurchase.bind(this);
@@ -97,19 +103,22 @@ class Home extends Component {
     const { sellerAddress, index, price } = item;
     const { privateKey, address } = getWallet();
     const contract = getContract(privateKey);
-    console.log(item)
-    console.log(contract)
+
     const tx = await contract.purchaseItem(sellerAddress, index, {
       value: Number(price)
     });
-    console.log(tx)
+    sessionStorage.setItem("pendingTxHash", tx.hash);
+    this.setState({ ...this.state });
     const minedTx = await ropstenProvider.waitForTransaction(tx.hash);
-    console.log(minedTx);
+    
     await this.loadItemsForSale();
-    console.log('loaded');
   }
 
   render() {
+    if (!this.state.items || sessionStorage.getItem("pendingTxHash")) {
+      return <Loading />
+    }
+
     return (
       <Grid>
         <Row>
@@ -117,9 +126,9 @@ class Home extends Component {
             <Panel>
               <Panel.Body>
                 <Form inline>
-                  {this.state.items.map((item, index) => (
+                  {this.state.items && this.state.items.map((item, index) => (
                     <div style={styles.item} key={index}>
-                      <FormGroup>
+                      <FormGroup style={styles.formGroup}>
                         <ItemForSaleView
                           index={index}
                           item={item}

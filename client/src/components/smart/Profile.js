@@ -6,6 +6,7 @@ import { getContract, getWallet, ropstenProvider } from "./../../utils/main";
 import EthersClient from "./../../models/EthersClient";
 import Wallet from "./../../models/Wallet";
 import ProfileForm from "./../dumb/forms/ProfileForm";
+import Loading from "./../Loading";
 
 class Profile extends Component {
   constructor(props) {
@@ -84,7 +85,8 @@ class Profile extends Component {
     const { privateKey } = this.state.wallet;
     const contract = getContract(privateKey);
     const tx = await contract.updateContact(email, number);
-
+    sessionStorage.setItem("pendingTxHash", tx.hash);
+    this.setState({ ...this.state });
     const minedTx = await ropstenProvider.waitForTransaction(tx.hash);
 
     this.setState({
@@ -113,6 +115,8 @@ class Profile extends Component {
     const contract = getContract(privateKey);
 
     const tx = await contract.cashoutCommission();
+    sessionStorage.setItem("pendingTxHash", tx.hash);
+    this.setState({ ...this.state });
     const minedTx = await ropstenProvider.waitForTransaction(tx.hash);
 
     this.setState({
@@ -132,6 +136,11 @@ class Profile extends Component {
   }
 
   render() {
+    if (!this.state.balance || !this.state.contact
+      || sessionStorage.getItem("pendingTxHash")) {
+      return <Loading />
+    }
+
     return (
       <Grid>
         <Row>

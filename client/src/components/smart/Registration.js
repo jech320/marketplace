@@ -48,7 +48,6 @@ class Registration extends Component {
 
     const tx = await contract.registerUser(roles[roleName], email, contactNumber);
     const minedTx = await ropstenProvider.waitForTransaction(tx.hash);
-    console.log(minedTx);
   }
 
   render() {

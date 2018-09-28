@@ -18,10 +18,15 @@ import {
 import Wallet from "./../../models/Wallet";
 import ItemForSaleView from "./../dumb/ItemForSaleView";
 import ItemForSaleFormModal from "../dumb/modals/ItemForSaleFormModal";
+import Loading from "./../Loading";
 
 const styles = {
   item: {
     display: "inline"
+  },
+  formGroup: {
+    maxWidth: "30%",
+    display: "inline-block"
   }
 };
 
@@ -29,7 +34,7 @@ class Inventory extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      items: [],
+      items: undefined,
       newItem: {
         name: "",
         description: "",
@@ -139,6 +144,8 @@ class Inventory extends Component {
       const contract = getContract(privateKey);
 
       const tx = await contract.addItemForSale(name, description, price);
+      sessionStorage.setItem("pendingTxHash", tx.hash);
+      this.setState({ ...this.state });
       const minedTx = await ropstenProvider.waitForTransaction(tx.hash);
       const itemForSaleCount = await contract.getItemForSaleCount(address);
       const itemIndex = itemForSaleCount.toNumber() - 1;
@@ -154,7 +161,6 @@ class Inventory extends Component {
   async handleUpdateItem(itemIndex) {
     const { privateKey, address } = getWallet();
     const contract = getContract(privateKey);
-    console.log(ropstenProvider)
     const itemArr = await contract.getItemForSale(address, itemIndex);
     const imgHash = await contract.getItemForSaleImage(address, itemIndex, 0);
 
@@ -185,7 +191,10 @@ class Inventory extends Component {
         imgHash = uploadResult[0].hash;
         const tx = await contract.removeItemForSaleImage(itemIndexSelected, 0);
         const minedTx = await ropstenProvider.waitForTransaction(tx.hash);
-        const tx2 = await contract.addImageForItemForSale(itemIndexSelected, imgHash);
+        const tx2 = await contract.addImageForItemForSale(
+          itemIndexSelected,
+          imgHash
+        );
         const minedTx2 = await ropstenProvider.waitForTransaction(tx2.hash);
       }
 
@@ -195,6 +204,8 @@ class Inventory extends Component {
         description,
         itemPrice
       );
+      sessionStorage.setItem("pendingTxHash", tx.hash);
+      this.setState({ ...this.state });
       const minedTx = await ropstenProvider.waitForTransaction(tx.hash);
 
       await this.loadItemsForSale();
@@ -208,6 +219,8 @@ class Inventory extends Component {
     const contract = getContract(privateKey);
 
     const tx = await contract.removeItemForSaleBySeller(itemIndex);
+    sessionStorage.setItem("pendingTxHash", tx.hash);
+    this.setState({ ...this.state });
     const minedTx = await ropstenProvider.waitForTransaction(tx.hash);
 
     await this.loadItemsForSale();
@@ -233,6 +246,10 @@ class Inventory extends Component {
   }
 
   render() {
+    if (!this.state.items || sessionStorage.getItem("pendingTxHash")) {
+      return <Loading />;
+    }
+
     return (
       <Grid>
         <Row>
@@ -252,19 +269,20 @@ class Inventory extends Component {
               </Panel.Heading>
               <Panel.Body>
                 <Form inline>
-                  {this.state.items.map((item, index) => (
-                    <div style={styles.item} key={index}>
-                      <FormGroup>
-                        <ItemForSaleView
-                          index={index}
-                          item={item}
-                          handleUpdateItem={this.handleUpdateItem}
-                          handleDeleteItem={this.handleDeleteItem}
-                        />
-                      </FormGroup>
-                      {"  "}
-                    </div>
-                  ))}
+                  {this.state.items &&
+                    this.state.items.map((item, index) => (
+                      <div style={styles.item} key={index}>
+                        <FormGroup style={styles.formGroup}>
+                          <ItemForSaleView
+                            index={index}
+                            item={item}
+                            handleUpdateItem={this.handleUpdateItem}
+                            handleDeleteItem={this.handleDeleteItem}
+                          />
+                        </FormGroup>
+                        {"  "}
+                      </div>
+                    ))}
                 </Form>
               </Panel.Body>
             </Panel>

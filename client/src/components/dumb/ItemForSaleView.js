@@ -2,10 +2,6 @@ import React from "react";
 import { Panel, Image, Button } from "react-bootstrap";
 
 const styles = {
-  itemImage: {
-    height: "150px",
-    width: "250px"
-  },
   text: {
     textAlign: "left"
   }
@@ -22,7 +18,6 @@ const ItemForSaleView = props => (
       <p>
         <Image
           src={`https://ipfs.io/ipfs/${props.item.imageIpfsHashes[0]}`}
-          style={styles.itemImage}
           rounded
           responsive
         />
@@ -50,7 +45,8 @@ const ItemForSaleView = props => (
           </Button>
         </div>
       )}
-      {["Buyer", "Owner"].indexOf(sessionStorage.getItem("userRole")) !== -1 && (
+      {["Buyer", "Owner"].indexOf(sessionStorage.getItem("userRole")) !==
+        -1 && (
         <div>
           <Button
             bsStyle="primary"
