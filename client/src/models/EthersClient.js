@@ -2,27 +2,23 @@ const ethers = require('ethers');
 const providers = ethers.providers;
 
 class EthersClient {
-  setNetwork(network) {
-    this.network = network;
+  static getInfuraProvider(network) {
+    return new providers.InfuraProvider(network);
   }
 
-  getInfuraProvider() {
-    return new providers.InfuraProvider(this.network);
+  static getEtherscanProvider(network) {
+    return new providers.EtherscanProvider(network);
   }
 
-  getEtherscanProvider() {
-    return new providers.EtherscanProvider(this.network);
+  static getLocalParityInstance(url, network) {
+    return new providers.JsonRpcProvider(url, network);
   }
 
-  getLocalParityInstance(url) {
-    return new providers.JsonRpcProvider(url, this.network);
+  static getRopsten() {
+    return providers.getDefaultProvider('ropsten');
   }
 
-  getRopsten() {
-    return providers.getDefaultProvider(this.network);
-  }
-
-  getProviderWithFallbacks(providers) {
+  static getProviderWithFallbacks(providers) {
     return new providers.FallbackProvider(providers);
   }
 }

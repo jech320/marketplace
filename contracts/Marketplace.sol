@@ -28,6 +28,11 @@ contract Marketplace is Ownable {
       string description,
       uint price
     );
+    event LogContactUpdate(
+      address indexed userAddress,
+      string email,
+      string number
+    );
     event LogItemForSaleDeletion(
       address indexed userAddress,
       string name,
@@ -105,6 +110,10 @@ contract Marketplace is Ownable {
         userAddressIndices.push(msg.sender);
         
         emit LogUserRegistration(msg.sender, uint(role), email, number);
+    }
+
+    function getRole() public view returns (uint) {
+      return uint(users[msg.sender].role);
     }
 
     function getUserAddress(uint index) public view returns (address) {
@@ -255,6 +264,20 @@ contract Marketplace is Ownable {
         uint arrLength = users[sellerAddress].itemsForSale.length;
         users[sellerAddress].itemsForSale[index] = users[sellerAddress].itemsForSale[arrLength - 1];
         users[sellerAddress].itemsForSale.length--;
+    }
+
+    function updateContact(
+      string email,
+      string number
+    ) public onlyRegistered {
+      users[msg.sender].contact.email = email;
+      users[msg.sender].contact.number = number;
+
+      emit LogContactUpdate(
+          msg.sender,
+          email,
+          number
+        );
     }
     
     function updateItemForSale(

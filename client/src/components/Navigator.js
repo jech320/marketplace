@@ -19,6 +19,8 @@ class Navigator extends Component {
 
   render() {
     const wallet = window.sessionStorage.getItem('wallet');
+    const userRole = window.sessionStorage.getItem('userRole');
+    
     return (
       <Navbar style={styles.navBar} inverse collapseOnSelect>
         <Navbar.Header>
@@ -62,6 +64,14 @@ class Navigator extends Component {
               </NavItem>
             }
             {
+              userRole === 'Seller' &&
+              <NavItem>
+                <Link style={styles.navItem} to="/inventory">
+                Inventory
+                </Link>
+              </NavItem>
+            }
+            {
               wallet &&
               <NavItem>
                 <Link style={styles.navItem} to="/profile">
@@ -72,7 +82,11 @@ class Navigator extends Component {
             {
               wallet &&
               <NavItem>
-                <Link style={styles.navItem} to="/">
+                <Link
+                  style={styles.navItem}
+                  onClick={() => window.sessionStorage.clear()}
+                  to="/"
+                >
                 Logout
                 </Link>
               </NavItem>

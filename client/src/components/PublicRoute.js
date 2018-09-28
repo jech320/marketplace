@@ -1,11 +1,12 @@
-import React from 'react';
-import { Route, Redirect } from 'react-router-dom';
+import React from "react";
+import { Route, Redirect } from "react-router-dom";
 
 const PublicRoute = ({ component: Component, ...props }) => {
   return (
-    <Route {...props}
+    <Route
+      {...props}
       render={props =>
-        window.sessionStorage.getItem('wallet') ? (
+        window.sessionStorage.getItem("wallet") ? (
           <Redirect
             to={{
               pathname: "/"
@@ -17,6 +18,6 @@ const PublicRoute = ({ component: Component, ...props }) => {
       }
     />
   );
-}
+};
 
 export default PublicRoute;

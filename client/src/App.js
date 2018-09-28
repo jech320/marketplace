@@ -11,6 +11,7 @@ import Registration from './components/smart/Registration';
 import Profile from './components/smart/Profile';
 import RecoverWallet from './components/smart/RecoverWallet';
 import GenerateWallet from './components/smart/GenerateWallet';
+import Inventory from './components/smart/Inventory';
 
 class App extends Component {
   render() {
@@ -24,6 +25,7 @@ class App extends Component {
           <PublicRoute path="/generate-wallet" component={GenerateWallet} />
           <PublicRoute path="/recover-wallet" component={RecoverWallet} />
           <PrivateRoute path="/profile" component={Profile} />
+          <PrivateRoute path="/inventory" component={Inventory} />
         </div>
       </Router>
     );

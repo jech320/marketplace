@@ -105,6 +105,7 @@ class RecoverWallet extends Component {
               </FormGroup>
               <Button
                 bsStyle="primary"
+                bsSize="lg"
                 onClick={this.recoverWallet}
                 block
               >
